@@ -2,38 +2,32 @@
 #include <string>
 #include<vector>
 #include<iostream>
+#include<functional>
+
 using namespace std;
 
-class assertException
-{
-};
-class UT  
+class assertException { };
+
+class UT
 {
 public:
-	typedef void(*function)();
-	 static void  printCaseInfo(const std::string& caseName);
-	 static void printErrorInfo( );
-	static void addCase (function f);
-	static void runTest();
-	std::vector<int> ll;
-
-//private:
-	//std::vector<void(*)()>caseList_;
-
-
-
+	using function = std::function<void(void)>;
+	static void  printCaseInfo(const std::string& caseName);
+	static void printErrorInfo();
+	static void addCase(function f);
+	static void runAllTest();
+	static std::vector<function>*caseList_;
 };
 
 #define ASSERT_TRUE(CONDITION)\
-	    do                    \
+		do\
 		{						\
-		if(!(CONDITION))throw assertException(); 			\
+			if(false==(CONDITION))throw assertException(); 			\
 		 }while(0)						\
 
 
-																				\
-
-#define TEST_CASE(NAME)  class CASEEXCUTOR_##NAME \
+#define TEST_CASE(NAME)  \
+		class CASEEXCUTOR_##NAME \
        {	\
           public:\
           static void runCase()\
@@ -41,13 +35,12 @@ public:
 	         UT::printCaseInfo(#NAME);\
 	        testCase_##NAME();  			              \
            }					                      \
-		     CASEEXCUTOR_##NAME()\
-			 { \
-			 UT::addCase(&CASEEXCUTOR_##NAME::runCase);\
-																				}\
-																					\
-			friend static void testCase_##NAME();\
-			};CASEEXCUTOR_##NAME NAME##instance; 						\
-			void  testCase_##NAME()	\
+		   CASEEXCUTOR_##NAME()\
+		  { \
+	   		UT::addCase(std::bind(CASEEXCUTOR_##NAME::runCase));\
+		  }\
+			static void testCase_##NAME();																		\
+		};CASEEXCUTOR_##NAME NAME##instance; 						\
+		void CASEEXCUTOR_##NAME :: testCase_##NAME()	\
 
 
